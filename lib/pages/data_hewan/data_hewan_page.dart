@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:galaxy_satwa/components/file_handle_api.dart';
 import 'package:galaxy_satwa/components/search.dart';
 import 'package:galaxy_satwa/config/theme.dart';
 import 'package:galaxy_satwa/models/api_response_model.dart';
 import 'package:galaxy_satwa/models/pet_model.dart';
 import 'package:galaxy_satwa/pages/data_hewan/comp/detail_data_hewan_page.dart';
+import 'package:galaxy_satwa/pages/data_hewan/comp/pdf_data_hewan.dart';
 import 'package:galaxy_satwa/services/pet_service.dart';
 
 class DataHewanPage extends StatefulWidget {
@@ -63,6 +65,33 @@ class _DataHewanPageState extends State<DataHewanPage> {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
+            const SizedBox(
+              height: 20,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final pdfFile = await PdfDataHewan.generate(petList);
+                    FileHandleApi.openFile(pdfFile);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: primaryGreen1,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Center(
+                      child: Text(
+                        'Unduh Data Hewan',
+                        style: plusJakartaSans.copyWith(
+                            fontWeight: semiBold, color: neutral100),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(
               height: 20,
             ),

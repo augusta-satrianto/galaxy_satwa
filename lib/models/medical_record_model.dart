@@ -1,5 +1,6 @@
 import 'package:galaxy_satwa/models/pet_model.dart';
 import 'package:galaxy_satwa/models/user_model.dart';
+import 'package:intl/intl.dart';
 
 class MedicalRecordModel {
   int? id;
@@ -47,5 +48,12 @@ class MedicalRecordModel {
       action: json['action'],
       recipe: json['recipe'],
     );
+  }
+
+  String get formattedDate {
+    if (date == null) return '';
+    final DateTime date2 = DateTime.parse(date!);
+    final DateFormat formatter = DateFormat('dd/MM/yyyy');
+    return formatter.format(date2);
   }
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:galaxy_satwa/components/file_handle_api.dart';
 import 'package:galaxy_satwa/components/search.dart';
 import 'package:galaxy_satwa/config/theme.dart';
 import 'package:galaxy_satwa/models/api_response_model.dart';
 import 'package:galaxy_satwa/models/user_model.dart';
 import 'package:galaxy_satwa/pages/pemilik_hewan/comp/detail_pemilik_hewan_page.dart';
+import 'package:galaxy_satwa/pages/pemilik_hewan/comp/pdf_data_pemilik.dart';
 import 'package:galaxy_satwa/services/auth_service.dart';
 
 class DataPemilikHewanPage extends StatefulWidget {
@@ -66,6 +68,33 @@ class _DataPemilikHewanPageState extends State<DataPemilikHewanPage> {
             const SizedBox(
               height: 20,
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final pdfFile = await PdfDataPemilik.generate(pemilikList);
+                    FileHandleApi.openFile(pdfFile);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: primaryGreen1,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Center(
+                      child: Text(
+                        'Unduh Data Pemilik',
+                        style: plusJakartaSans.copyWith(
+                            fontWeight: semiBold, color: neutral100),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 20,
+            ),
             CustomSearch(
                 placeholder: 'Cari pemilik hewan',
                 seacrhController: seacrhController),
@@ -124,37 +153,42 @@ class _DataPemilikHewanPageState extends State<DataPemilikHewanPage> {
                             const SizedBox(
                               width: 18,
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user.name!,
-                                  style: inter.copyWith(
-                                      fontWeight: semiBold, color: neutral00),
-                                ),
-                                const SizedBox(
-                                  height: 5,
-                                ),
-                                Text(
-                                  'No. tlpn : ${user.phone}',
-                                  style: inter.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: semiBold,
-                                      color: const Color(0xFF94959A)),
-                                ),
-                                const SizedBox(
-                                  height: 5,
-                                ),
-                                Text(
-                                  'Email : ${user.email}',
-                                  style: inter.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: semiBold,
-                                      color: const Color(0xFF94959A)),
-                                )
-                              ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    user.name!,
+                                    style: inter.copyWith(
+                                        fontWeight: semiBold, color: neutral00),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Text(
+                                    'No. tlpn : ${user.phone}',
+                                    style: inter.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: semiBold,
+                                        color: const Color(0xFF94959A)),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Text(
+                                    'Email : ${user.email}',
+                                    style: inter.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: semiBold,
+                                        color: const Color(0xFF94959A)),
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                ],
+                              ),
                             ),
-                            const Spacer(),
+                            const SizedBox(
+                              width: 5,
+                            ),
                             Image.asset(
                               'assets/ic_arrow_right.png',
                               width: 24,

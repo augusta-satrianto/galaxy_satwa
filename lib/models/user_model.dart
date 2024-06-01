@@ -1,8 +1,11 @@
+import 'package:intl/intl.dart';
+
 class UserModel {
   int? id;
   String? name;
   String? email;
   String? role;
+  String? specialization;
   String? dateOfBirth;
   String? address;
   String? gender;
@@ -14,6 +17,7 @@ class UserModel {
       this.name,
       this.email,
       this.role,
+      this.specialization,
       this.dateOfBirth,
       this.address,
       this.gender,
@@ -26,11 +30,19 @@ class UserModel {
       name: json['name'],
       email: json['email'],
       role: json['role'],
+      specialization: json['specialization'],
       dateOfBirth: json['date_of_birth'],
       address: json['address'],
       gender: json['gender'],
       phone: json['phone'],
       image: json['image'],
     );
+  }
+
+  String get formattedDateOfBirth {
+    if (dateOfBirth == null) return '';
+    final DateTime date = DateTime.parse(dateOfBirth!);
+    final DateFormat formatter = DateFormat('dd/MM/yyyy');
+    return formatter.format(date);
   }
 }

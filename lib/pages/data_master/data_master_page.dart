@@ -169,7 +169,10 @@ class _DataMasterPageState extends State<DataMasterPage> {
                         width: 60,
                         child: Center(
                           child: Text(
-                            user.role!,
+                            user.specialization != null
+                                ? user.specialization!
+                                : user.role!,
+                            textAlign: TextAlign.center,
                             style: plusJakartaSans.copyWith(
                                 fontSize: 10, color: neutral00),
                           ),

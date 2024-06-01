@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class MedicineModel {
   int? id;
   String? code;
@@ -15,5 +17,12 @@ class MedicineModel {
       stock: json['stock'],
       expiryDate: json['expiry_date'],
     );
+  }
+
+  String get formattedExpiryDate {
+    if (expiryDate == null) return '';
+    final DateTime date = DateTime.parse(expiryDate!);
+    final DateFormat formatter = DateFormat('dd/MM/yyyy');
+    return formatter.format(date);
   }
 }

@@ -1,13 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:galaxy_satwa/config/theme.dart';
 import 'package:galaxy_satwa/models/api_response_model.dart';
+import 'package:galaxy_satwa/models/appointment_model.dart';
+import 'package:galaxy_satwa/models/notification_model.dart';
 import 'package:galaxy_satwa/models/pet_model.dart';
+import 'package:galaxy_satwa/models/schedule_model.dart';
 import 'package:galaxy_satwa/pages/hewanku/comp/create_hewan_page.dart';
 import 'package:galaxy_satwa/pages/hewanku/comp/detail_hewan_page.dart';
 import 'package:galaxy_satwa/pages/notifikasi/notifikasi_page.dart';
 import 'package:galaxy_satwa/pages/tahap_presensi/tahap_lokasi_page.dart';
+import 'package:galaxy_satwa/services/appointment_service.dart';
 import 'package:galaxy_satwa/services/attendance_service.dart';
+import 'package:galaxy_satwa/services/notification_service.dart';
 import 'package:galaxy_satwa/services/pet_service.dart';
+import 'package:galaxy_satwa/services/schedule_service.dart';
 import 'package:intl/intl.dart';
 
 class BerandaPage extends StatefulWidget {
@@ -26,6 +34,32 @@ class BerandaPage extends StatefulWidget {
 }
 
 class _BerandaPageState extends State<BerandaPage> {
+  List<dynamic> notificationList = [];
+  int countNotRead = 0;
+  void _getNotification() async {
+    countNotRead = 0;
+    ApiResponse response = await getNotificationByUserLogin();
+    if (response.error == null) {
+      notificationList = response.data as List<dynamic>;
+      for (int i = 0; i < notificationList.length; i++) {
+        NotificationModel notif = notificationList[i];
+        if (notif.isRead == 0) {
+          countNotRead++;
+        }
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    } else {
+      // ignore: use_build_context_synchronously
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('getNotification')),
+        );
+      }
+    }
+  }
+
   List<dynamic> petList = [];
   PetCountModel? petCountModel;
   void _getPet() async {
@@ -33,12 +67,14 @@ class _BerandaPageState extends State<BerandaPage> {
       ApiResponse response = await getPetByUserLogin();
       if (response.error == null) {
         petList = response.data as List<dynamic>;
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       } else {
         // ignore: use_build_context_synchronously
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${response.error}')),
+            SnackBar(content: Text('getPetByUserLogin')),
           );
         }
       }
@@ -46,7 +82,9 @@ class _BerandaPageState extends State<BerandaPage> {
       ApiResponse response = await getCountPet();
       if (response.error == null) {
         petCountModel = response.data as PetCountModel;
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       } else {
         // ignore: use_build_context_synchronously
         if (mounted) {
@@ -62,7 +100,9 @@ class _BerandaPageState extends State<BerandaPage> {
   void _getAttendanceToday() async {
     attendanceToday = await getAttendanceToday();
     if (attendanceToday != 'Error') {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     } else {
       // ignore: use_build_context_synchronously
       if (mounted) {
@@ -73,10 +113,53 @@ class _BerandaPageState extends State<BerandaPage> {
     }
   }
 
+  List<dynamic> scheduleList = [];
+  void _getSchedule() async {
+    ApiResponse response = await getScheduleAll();
+    if (response.error == null) {
+      scheduleList = response.data as List<dynamic>;
+      if (mounted) {
+        setState(() {});
+      }
+    } else {
+      // ignore: use_build_context_synchronously
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${response.error}')),
+        );
+      }
+    }
+  }
+
+  List<dynamic> appointmentList = [];
+  bool hasData = true;
+  void _getAppointment() async {
+    ApiResponse response = await getAppointmentWillCome();
+    if (response.error == null) {
+      appointmentList = response.data as List<dynamic>;
+      if (mounted) {
+        setState(() {});
+      }
+    } else {
+      // ignore: use_build_context_synchronously
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${response.error}')),
+        );
+      }
+    }
+  }
+
+  Timer? _timer;
   @override
   void initState() {
+    _getNotification();
+    _timer = Timer.periodic(
+        const Duration(seconds: 3), (timer) => _getNotification());
     _getPet();
     _getAttendanceToday();
+    _getSchedule();
+    _getAppointment();
     super.initState();
   }
 
@@ -143,24 +226,6 @@ class _BerandaPageState extends State<BerandaPage> {
                         ],
                       ),
                     ),
-                    // GestureDetector(
-                    //   onTap: () {
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (context) => const NotifikasiPage()));
-                    //   },
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.only(top: 6),
-                    //     child: Image.asset(
-                    //       'assets/ic_chat.png',
-                    //       width: 24,
-                    //     ),
-                    //   ),
-                    // ),
-                    // const SizedBox(
-                    //   width: 9,
-                    // ),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -168,12 +233,31 @@ class _BerandaPageState extends State<BerandaPage> {
                             MaterialPageRoute(
                                 builder: (context) => const NotifikasiPage()));
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Image.asset(
-                          'assets/ic_notif.png',
-                          width: 24,
-                        ),
+                      child: Stack(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6, right: 4),
+                            child: Image.asset(
+                              'assets/ic_notif.png',
+                              width: 24,
+                            ),
+                          ),
+                          if (countNotRead > 0)
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                    color: danger, shape: BoxShape.circle),
+                                child: Text(
+                                  countNotRead.toString(),
+                                  style: inter.copyWith(
+                                      color: Colors.white, fontSize: 10),
+                                ),
+                              ),
+                            )
+                        ],
                       ),
                     ),
                     const SizedBox(
@@ -568,87 +652,136 @@ class _BerandaPageState extends State<BerandaPage> {
           const SizedBox(
             height: 6,
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-            decoration: BoxDecoration(
-                color: const Color(0xFFFFE7BC),
-                borderRadius: BorderRadius.circular(20)),
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/img_imunisasi.png',
-                  width: 45,
+          Column(
+            children: List.generate(scheduleList.length, (index) {
+              ScheduleModel schedule = scheduleList[index];
+              return Container(
+                margin: const EdgeInsets.fromLTRB(24, 0, 24, 13),
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+                decoration: BoxDecoration(
+                    color: schedule.category == 'Vaksinasi'
+                        ? const Color(0xFFF7E4FF)
+                        : const Color(0xFFFFE7BC),
+                    borderRadius: BorderRadius.circular(20)),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      schedule.category == 'Vaksinasi'
+                          ? 'assets/img_vaksin.png'
+                          : 'assets/img_imunisasi.png',
+                      width: 45,
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.role == 'pasien'
+                                ? 'Ayo ${schedule.category} Hewanmu !!'
+                                : 'Terdapat Jadwal ${schedule.category}',
+                            style: inter.copyWith(
+                                fontWeight: medium,
+                                fontSize: 12,
+                                color: neutral00),
+                          ),
+                          Text(
+                            'Tanggal ${schedule.category!.toLowerCase()} : ${DateFormat('d MMMM yyyy').format(DateTime.parse(schedule.date!))}',
+                            style: inter.copyWith(
+                                fontWeight: medium,
+                                fontSize: 12,
+                                color: neutral00),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Expanded(
-                  child: Text(
-                    'Ayo Imunisasi Hewanmu !!\nTanggal imunisasi : 25 Februari 2024',
-                    style: inter.copyWith(
-                        fontWeight: medium, fontSize: 12, color: neutral00),
+              );
+            }),
+          ),
+          Column(
+            children: List.generate(appointmentList.length, (index) {
+              AppointmentModel appointment = appointmentList[index];
+              if (index == 0) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFCDF4DC),
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/img_kalender.png',
+                        width: 45,
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Jangan Lupa Janji Temu Kamu!!\nTanggal : ${DateFormat('EEEE, d MMMM yyyy').format(DateTime.parse(appointment.date!))}',
+                              style: inter.copyWith(
+                                  fontWeight: medium,
+                                  fontSize: 12,
+                                  color: neutral00),
+                            ),
+                            widget.role == 'pasien'
+                                ? Text(
+                                    'Dokter   : ${appointment.doctor!.name}',
+                                    style: inter.copyWith(
+                                        fontWeight: medium,
+                                        fontSize: 12,
+                                        color: neutral00),
+                                  )
+                                : Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Hewan   : ',
+                                        style: inter.copyWith(
+                                            fontWeight: medium,
+                                            fontSize: 12,
+                                            color: neutral00),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          '${appointment.pet!.name} (${appointment.pet!.type})',
+                                          style: inter.copyWith(
+                                              fontWeight: medium,
+                                              fontSize: 12,
+                                              color: neutral00),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                            Text(
+                              'Jam        : ${appointment.time!.substring(0, 5)}',
+                              style: inter.copyWith(
+                                  fontWeight: medium,
+                                  fontSize: 12,
+                                  color: neutral00),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 13,
-          ),
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-            decoration: BoxDecoration(
-                color: const Color(0xFFF7E4FF),
-                borderRadius: BorderRadius.circular(20)),
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/img_vaksin.png',
-                  width: 45,
-                ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Expanded(
-                  child: Text(
-                    'Segera Vaksinasi Hewanmu !!\nTanggal Vaksinasi : 25 Maret 2024',
-                    style: inter.copyWith(
-                        fontWeight: medium, fontSize: 12, color: neutral00),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 13,
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-            decoration: BoxDecoration(
-                color: const Color(0xFFCDF4DC),
-                borderRadius: BorderRadius.circular(20)),
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/img_kalender.png',
-                  width: 45,
-                ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text(
-                  'Jangan Lupa Janji Temu Kamu!!\nTanggal : Kamis, 7 Maret 2024\nDokter   : M.Erfan Efendi',
-                  style: inter.copyWith(
-                      fontWeight: medium, fontSize: 12, color: neutral00),
-                ),
-              ],
-            ),
+                );
+              }
+              return Container();
+            }),
           ),
           const SizedBox(
             height: 20,

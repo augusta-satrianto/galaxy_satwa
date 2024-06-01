@@ -35,3 +35,101 @@ Future<ApiResponse> getMedicalRecordByPetId({required int petId}) async {
   }
   return apiResponse;
 }
+
+//create
+Future<ApiResponse> createMedicalRecord({
+  required String petId,
+  required String symptom,
+  required String diagnosis,
+  required String action,
+  required String recipe,
+}) async {
+  ApiResponse apiResponse = ApiResponse();
+  try {
+    String token = await getToken();
+    final response =
+        await http.post(Uri.parse('$baseURL/medicalrecord'), headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token'
+    }, body: {
+      'pet_id': petId,
+      'symptom': symptom,
+      'diagnosis': diagnosis,
+      'action': action,
+      'recipe': recipe,
+    });
+    switch (response.statusCode) {
+      case 200:
+        apiResponse.data = jsonDecode(response.body);
+        break;
+      default:
+        apiResponse.error = 'Something Whent Wrong';
+        break;
+    }
+  } catch (e) {
+    apiResponse.error = 'Server Error';
+  }
+  return apiResponse;
+}
+
+//Update Pet
+Future<ApiResponse> updateMedicalRecord({
+  required String recordId,
+  required String symptom,
+  required String diagnosis,
+  required String action,
+  required String recipe,
+}) async {
+  ApiResponse apiResponse = ApiResponse();
+  try {
+    String token = await getToken();
+    final response =
+        await http.put(Uri.parse('$baseURL/medicalrecord/$recordId'), headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token'
+    }, body: {
+      'symptom': symptom,
+      'diagnosis': diagnosis,
+      'action': action,
+      'recipe': recipe,
+    });
+    switch (response.statusCode) {
+      case 200:
+        apiResponse.data = jsonDecode(response.body)['message'];
+        break;
+      case 403:
+        apiResponse.error = 'Data Not Found';
+        break;
+      default:
+        apiResponse.error = 'Something Whent Wrong';
+        break;
+    }
+  } catch (e) {
+    apiResponse.error = 'Server Error';
+  }
+  return apiResponse;
+}
+
+//Delete Post
+Future<ApiResponse> deleteMedicalRecord(String recordId) async {
+  ApiResponse apiResponse = ApiResponse();
+  try {
+    String token = await getToken();
+    final response = await http
+        .delete(Uri.parse('$baseURL/medicalrecord/$recordId'), headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token'
+    });
+    switch (response.statusCode) {
+      case 200:
+        apiResponse.data = jsonDecode(response.body)['message'];
+        break;
+      default:
+        apiResponse.error = 'Something Whent Wrong';
+        break;
+    }
+  } catch (e) {
+    apiResponse.error = 'Server Error';
+  }
+  return apiResponse;
+}

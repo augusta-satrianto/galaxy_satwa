@@ -68,6 +68,37 @@ Future<List<String>> getAppointmentByDoctorDate(
   return listTime;
 }
 
+// By User Login
+Future<ApiResponse> getAppointmentWillCome() async {
+  ApiResponse apiResponse = ApiResponse();
+  try {
+    String token = await getToken();
+    final response =
+        await http.get(Uri.parse('$baseURL/appointment/willcome'), headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Authorization': 'Bearer $token'
+    });
+    print(response.statusCode);
+    print('APp');
+    switch (response.statusCode) {
+      case 200:
+        print(jsonDecode(response.body)['data']);
+        apiResponse.data = jsonDecode(response.body)['data']
+            .map((p) => AppointmentModel.fromJson(p))
+            .toList();
+        apiResponse.data as List<dynamic>;
+        break;
+      default:
+        apiResponse.error = 'Something Whent Wrong';
+        break;
+    }
+  } catch (e) {
+    apiResponse.error = 'Server Error';
+  }
+  return apiResponse;
+}
+
 //create
 Future<ApiResponse> createAppointment({
   required String doctorId,

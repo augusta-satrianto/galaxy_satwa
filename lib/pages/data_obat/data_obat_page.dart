@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:galaxy_satwa/components/file_handle_api.dart';
 import 'package:galaxy_satwa/config/theme.dart';
 import 'package:galaxy_satwa/models/api_response_model.dart';
 import 'package:galaxy_satwa/models/medicine_model.dart';
+import 'package:galaxy_satwa/pages/data_obat/comp/pdf_data_obat.dart';
 import 'package:galaxy_satwa/services/medicine_service.dart';
 import 'package:intl/intl.dart';
 
@@ -61,7 +63,10 @@ class _DataObatPageState extends State<DataObatPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () async {
+                    final pdfFile = await PdfDataObat.generate(medicineList);
+                    FileHandleApi.openFile(pdfFile);
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -101,7 +106,7 @@ class _DataObatPageState extends State<DataObatPage> {
                     width: 55,
                     child: Center(
                       child: Text(
-                        'ID Obat',
+                        'Kode Obat',
                         style: plusJakartaSans.copyWith(
                             fontWeight: semiBold,
                             fontSize: 10,

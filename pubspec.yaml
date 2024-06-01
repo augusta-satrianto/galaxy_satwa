@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  badges: ^3.1.2
   cupertino_icons: ^1.0.2
   dropdown_button2: ^2.3.9
   file_picker: ^8.0.0+1
@@ -48,6 +49,7 @@ dependencies:
   timer_builder: ^2.0.0
   trust_location: ^2.0.13
   url_launcher: ^6.2.4
+  pdf: ^3.10.4
 
 dev_dependencies:
   flutter_lints: ^2.0.0
@@ -65,6 +67,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - assets/fonts/Times New Roman.ttf
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
   # For details regarding adding assets from package dependencies, see

@@ -64,11 +64,11 @@ class DetailDataHewanPage extends StatelessWidget {
             _customListDetail(
                 title: 'Alamat',
                 value: pet.user!.address != null ? pet.user!.address! : '-'),
-            const Spacer(),
-            CustomFilledButton(title: 'Unduh Data Hewan', onPressed: () {}),
-            const SizedBox(
-              height: 50,
-            )
+            // const Spacer(),
+            // CustomFilledButton(title: 'Unduh Data Hewan', onPressed: () {}),
+            // const SizedBox(
+            //   height: 50,
+            // )
           ],
         ),
       ),
