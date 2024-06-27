@@ -1,7 +1,7 @@
 class CorrespondenceModel {
   int? id;
-  int? doctorId;
-  int? patientId;
+  String? doctorId;
+  String? patientId;
   String? category;
   String? file;
   String? replyFile;

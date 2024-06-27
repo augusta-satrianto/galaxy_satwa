@@ -17,10 +17,8 @@ Future<ApiResponse> getAttendanceByUserLogin() async {
       'X-Requested-With': 'XMLHttpRequest',
       'Authorization': 'Bearer $token'
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(jsonDecode(response.body)['data']);
         apiResponse.data = jsonDecode(response.body)['data']
             .map((p) => AttendanceModel.fromJson(p))
             .toList();
@@ -47,7 +45,6 @@ Future<String> getAttendanceToday() async {
       'X-Requested-With': 'XMLHttpRequest',
       'Authorization': 'Bearer $token'
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
         if (jsonDecode(response.body)['status'] == 'Kosong') {
@@ -79,10 +76,8 @@ Future<ApiResponse> getAttendanceMonthly({required String yearmonth}) async {
       'X-Requested-With': 'XMLHttpRequest',
       'Authorization': 'Bearer $token'
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(jsonDecode(response.body)['data']);
         apiResponse.data = jsonDecode(response.body)['data']
             .map((p) => AttendanceModel.fromJson(p))
             .toList();
@@ -103,8 +98,6 @@ Future<ApiResponse> createAttendance({
   required String date,
   required String checkIn,
 }) async {
-  print(date);
-  print(checkIn);
   ApiResponse apiResponse = ApiResponse();
   try {
     String token = await getToken();
@@ -116,14 +109,11 @@ Future<ApiResponse> createAttendance({
       'date': date,
       'check_in': checkIn,
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(response.body);
         apiResponse.data = jsonDecode(response.body);
         break;
       default:
-        print(jsonDecode(response.body));
         apiResponse.error = 'Something Whent Wrong';
         break;
     }
@@ -150,11 +140,7 @@ Future<ApiResponse> updateAttendance({
     });
     switch (response.statusCode) {
       case 200:
-        print(apiResponse.data);
         apiResponse.data = jsonDecode(response.body)['message'];
-        break;
-      case 403:
-        apiResponse.error = 'Data Not Found';
         break;
       default:
         apiResponse.error = 'Something Whent Wrong';

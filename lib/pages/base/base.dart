@@ -165,7 +165,7 @@ class _BasePageState extends State<BasePage> {
         currentIndex: currentIndex,
         type: BottomNavigationBarType.fixed,
         elevation: 0.0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         showSelectedLabels: true,
         showUnselectedLabels: true,
         selectedFontSize: 10,
@@ -183,6 +183,7 @@ class _BasePageState extends State<BasePage> {
 
 _mBottomNavItem({required String label, required String icon}) {
   return BottomNavigationBarItem(
+    backgroundColor: Colors.amber,
     label: label,
     icon: Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -215,31 +216,28 @@ class CustomListMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        color: Colors.white,
-        child: Row(
-          children: [
-            Image.asset(
-              icon,
-              width: 26,
-            ),
-            const SizedBox(
-              width: 10,
-            ),
-            Text(
-              title,
-              style: plusJakartaSans.copyWith(color: neutral00, fontSize: 16),
-            ),
-            const Spacer(),
-            Image.asset(
-              'assets/images/ic_arrow_right.png',
-              width: 24,
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      color: Colors.red,
+      child: Row(
+        children: [
+          Image.asset(
+            icon,
+            width: 26,
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          Text(
+            title,
+            style: plusJakartaSans.copyWith(color: neutral00, fontSize: 16),
+          ),
+          const Spacer(),
+          Image.asset(
+            'assets/images/ic_arrow_right.png',
+            width: 24,
+          ),
+        ],
       ),
     );
   }

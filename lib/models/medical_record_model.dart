@@ -4,9 +4,9 @@ import 'package:intl/intl.dart';
 
 class MedicalRecordModel {
   int? id;
-  int? patientId;
-  int? doctorId;
-  int? petId;
+  String? patientId;
+  String? doctorId;
+  String? petId;
   UserModel? doctor;
   PetModel? pet;
   String? date;

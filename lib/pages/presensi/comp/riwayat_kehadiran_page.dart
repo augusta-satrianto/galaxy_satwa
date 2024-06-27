@@ -91,7 +91,7 @@ class _RiwayatKehadiranPageState extends State<RiwayatKehadiranPage> {
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: const Color(0xFF333333))),
-                  firstDay: DateTime.utc(2024, 4, 1),
+                  firstDay: DateTime.utc(2024, 6, 1),
                   lastDay: DateTime.utc(2030, 3, 14),
                   focusedDay: DateTime.now(),
                   startingDayOfWeek: StartingDayOfWeek.monday,
@@ -335,11 +335,17 @@ class _RiwayatKehadiranPageState extends State<RiwayatKehadiranPage> {
                   Column(
                     children: List.generate(attendanceList.length, (index) {
                       AttendanceModel attendance = attendanceList[index];
+                      DateTime checkInDateTime =
+                          DateTime.parse('1970-01-01 ${attendance.checkIn!}');
+                      DateTime comparisonTime =
+                          DateTime.parse('1970-01-01 08:00:00');
                       if (attendance.date == selectDate) {
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Container(
+                              width:
+                                  (MediaQuery.of(context).size.width - 60) / 2,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 30),
                               decoration: BoxDecoration(
@@ -372,7 +378,15 @@ class _RiwayatKehadiranPageState extends State<RiwayatKehadiranPage> {
                                     style: plusJakartaSans.copyWith(
                                         fontWeight: bold,
                                         fontSize: 28,
-                                        color: primaryBlue1),
+                                        color: attendance.date! ==
+                                                DateTime.now()
+                                                    .toString()
+                                                    .substring(0, 10)
+                                            ? primaryBlue1
+                                            : checkInDateTime
+                                                    .isAfter(comparisonTime)
+                                                ? const Color(0xFFFFAE00)
+                                                : const Color(0xFF34BD32)),
                                   )
                                 ],
                               ),
@@ -380,6 +394,8 @@ class _RiwayatKehadiranPageState extends State<RiwayatKehadiranPage> {
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 30),
+                              width:
+                                  (MediaQuery.of(context).size.width - 60) / 2,
                               decoration: BoxDecoration(
                                 color: neutral06,
                                 borderRadius: BorderRadius.circular(10),
@@ -410,9 +426,18 @@ class _RiwayatKehadiranPageState extends State<RiwayatKehadiranPage> {
                                         ? attendance.checkOut!.substring(0, 5)
                                         : '-',
                                     style: plusJakartaSans.copyWith(
-                                        fontWeight: bold,
-                                        fontSize: 28,
-                                        color: primaryBlue1),
+                                      fontWeight: bold,
+                                      fontSize: 28,
+                                      color: attendance.date! ==
+                                              DateTime.now()
+                                                  .toString()
+                                                  .substring(0, 10)
+                                          ? primaryBlue1
+                                          : checkInDateTime
+                                                  .isAfter(comparisonTime)
+                                              ? const Color(0xFFFFAE00)
+                                              : const Color(0xFF34BD32),
+                                    ),
                                   )
                                 ],
                               ),

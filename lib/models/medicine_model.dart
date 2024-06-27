@@ -4,7 +4,7 @@ class MedicineModel {
   int? id;
   String? code;
   String? name;
-  int? stock;
+  String? stock;
   String? expiryDate;
 
   MedicineModel({this.id, this.code, this.name, this.stock, this.expiryDate});

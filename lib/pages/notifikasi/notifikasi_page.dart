@@ -18,15 +18,11 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
     ApiResponse response = await getNotificationByUserLogin();
     if (response.error == null) {
       notificationList = response.data as List<dynamic>;
-      setState(() {});
-      updateNotification();
-    } else {
-      // ignore: use_build_context_synchronously
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
+        setState(() {});
       }
+
+      updateNotification();
     }
   }
 
@@ -88,7 +84,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 17),
-                  color: notification.isRead == 0
+                  color: notification.isRead == '0'
                       ? const Color(0xFFE5F5F6)
                       : Colors.white,
                   child: Column(

@@ -15,18 +15,16 @@ class HewankuPage extends StatefulWidget {
 
 class _HewankuPageState extends State<HewankuPage> {
   List<dynamic> petList = [];
+  bool isLoading = true;
   void _getPet() async {
     ApiResponse response = await getPetByUserLogin();
     if (response.error == null) {
       petList = response.data as List<dynamic>;
-      setState(() {});
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
-      }
+    }
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -152,103 +150,130 @@ class _HewankuPageState extends State<HewankuPage> {
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      physics: const BouncingScrollPhysics(),
-                      separatorBuilder: (context, index) {
-                        return const SizedBox(
-                          height: 14,
-                        );
-                      },
-                      itemCount: petList.length,
-                      itemBuilder: (context, index) {
-                        PetModel pet = petList[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => DetailHewankuPage(
-                                          pet: pet,
-                                        ))).then((receivedData) {
-                              if (receivedData == 'retrive') {
-                                _getPet();
-                              }
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      const Color(0xFF000000).withOpacity(0.25),
-                                  spreadRadius: 0,
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
+                  if (!isLoading)
+                    petList.isEmpty
+                        ? Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Container(
-                                  width: 60,
-                                  height: 57,
-                                  margin: const EdgeInsets.only(bottom: 4),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    image: DecorationImage(
-                                      fit: BoxFit.cover,
-                                      image: NetworkImage(
-                                        '${pet.image}',
-                                      ),
-                                    ),
-                                  ),
+                                Image.asset(
+                                  'assets/img_grafis_pet.png',
+                                  width: 170,
                                 ),
                                 const SizedBox(
-                                  width: 18,
+                                  height: 20,
                                 ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      pet.name!,
-                                      style: inter.copyWith(
-                                          fontWeight: semiBold,
-                                          color: neutral00),
-                                    ),
-                                    Text(
-                                      'Umur ${pet.old}',
-                                      style: inter.copyWith(
-                                          fontSize: 12,
-                                          fontWeight: semiBold,
-                                          color: const Color(0xFF94959A)),
-                                    ),
-                                    Text(
-                                      pet.type!,
-                                      style: inter.copyWith(
-                                          fontSize: 12,
-                                          fontWeight: semiBold,
-                                          color: const Color(0xFF94959A)),
-                                    )
-                                  ],
-                                ),
-                                const Spacer(),
-                                Image.asset(
-                                  'assets/ic_arrow_right.png',
-                                  width: 24,
-                                ),
+                                Text(
+                                  'Kamu belum menambahkan\nhewanmu',
+                                  textAlign: TextAlign.center,
+                                  style: plusJakartaSans.copyWith(
+                                      fontSize: 12, color: neutral02),
+                                )
                               ],
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  )
+                          )
+                        : Expanded(
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              physics: const BouncingScrollPhysics(),
+                              separatorBuilder: (context, index) {
+                                return const SizedBox(
+                                  height: 14,
+                                );
+                              },
+                              itemCount: petList.length,
+                              itemBuilder: (context, index) {
+                                PetModel pet = petList[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                DetailHewankuPage(
+                                                  pet: pet,
+                                                ))).then((receivedData) {
+                                      if (receivedData == 'retrive') {
+                                        _getPet();
+                                      }
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF5F5F5),
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF000000)
+                                              .withOpacity(0.25),
+                                          spreadRadius: 0,
+                                          blurRadius: 2,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 60,
+                                          height: 57,
+                                          margin:
+                                              const EdgeInsets.only(bottom: 4),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: NetworkImage(
+                                                '${pet.image}',
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 18,
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              pet.name!,
+                                              style: inter.copyWith(
+                                                  fontWeight: semiBold,
+                                                  color: neutral00),
+                                            ),
+                                            Text(
+                                              'Umur ${pet.old}',
+                                              style: inter.copyWith(
+                                                  fontSize: 12,
+                                                  fontWeight: semiBold,
+                                                  color:
+                                                      const Color(0xFF94959A)),
+                                            ),
+                                            Text(
+                                              pet.type!,
+                                              style: inter.copyWith(
+                                                  fontSize: 12,
+                                                  fontWeight: semiBold,
+                                                  color:
+                                                      const Color(0xFF94959A)),
+                                            )
+                                          ],
+                                        ),
+                                        const Spacer(),
+                                        Image.asset(
+                                          'assets/ic_arrow_right.png',
+                                          width: 24,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
                 ],
               ),
             )

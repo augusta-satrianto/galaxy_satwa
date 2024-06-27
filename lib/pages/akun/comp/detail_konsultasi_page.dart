@@ -14,7 +14,7 @@ class KonsultasiDetailPage extends StatefulWidget {
 
 class _KonsultasiDetailPageState extends State<KonsultasiDetailPage> {
   void _launchWhatsApp() async {
-    String phoneNumber = widget.dokter.phone!;
+    String phoneNumber = '+6289678688747';
     String message = 'Halo Dokter, saya ingin melakukan konsultasi.';
     String uri =
         'whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}';
@@ -92,6 +92,8 @@ class _KonsultasiDetailPageState extends State<KonsultasiDetailPage> {
                 title: 'Chat Dokter',
                 onPressed: () {
                   _launchWhatsApp();
+                  // FlutterOpenWhatsapp.sendSingleMessage(
+                  //     "083853162643", "Hello");
                 }),
             const SizedBox(
               height: 27,

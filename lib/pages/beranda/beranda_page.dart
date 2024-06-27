@@ -43,19 +43,12 @@ class _BerandaPageState extends State<BerandaPage> {
       notificationList = response.data as List<dynamic>;
       for (int i = 0; i < notificationList.length; i++) {
         NotificationModel notif = notificationList[i];
-        if (notif.isRead == 0) {
+        if (notif.isRead == '0') {
           countNotRead++;
         }
       }
       if (mounted) {
         setState(() {});
-      }
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('getNotification')),
-        );
       }
     }
   }
@@ -70,13 +63,6 @@ class _BerandaPageState extends State<BerandaPage> {
         if (mounted) {
           setState(() {});
         }
-      } else {
-        // ignore: use_build_context_synchronously
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('getPetByUserLogin')),
-          );
-        }
       }
     } else {
       ApiResponse response = await getCountPet();
@@ -84,13 +70,6 @@ class _BerandaPageState extends State<BerandaPage> {
         petCountModel = response.data as PetCountModel;
         if (mounted) {
           setState(() {});
-        }
-      } else {
-        // ignore: use_build_context_synchronously
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${response.error}')),
-          );
         }
       }
     }
@@ -103,13 +82,6 @@ class _BerandaPageState extends State<BerandaPage> {
       if (mounted) {
         setState(() {});
       }
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$attendanceToday')),
-        );
-      }
     }
   }
 
@@ -121,31 +93,25 @@ class _BerandaPageState extends State<BerandaPage> {
       if (mounted) {
         setState(() {});
       }
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
-      }
     }
   }
 
   List<dynamic> appointmentList = [];
   bool hasData = true;
+  int pasienHariIni = 0;
   void _getAppointment() async {
+    pasienHariIni = 0;
     ApiResponse response = await getAppointmentWillCome();
     if (response.error == null) {
       appointmentList = response.data as List<dynamic>;
+      for (int i = 0; i < appointmentList.length; i++) {
+        AppointmentModel app = appointmentList[i];
+        if (app.date == DateTime.now().toString().substring(0, 10)) {
+          pasienHariIni++;
+        }
+      }
       if (mounted) {
         setState(() {});
-      }
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
       }
     }
   }
@@ -155,12 +121,20 @@ class _BerandaPageState extends State<BerandaPage> {
   void initState() {
     _getNotification();
     _timer = Timer.periodic(
-        const Duration(seconds: 3), (timer) => _getNotification());
+        const Duration(seconds: 5), (timer) => _getNotification());
     _getPet();
-    _getAttendanceToday();
+    if (widget.role != 'pasien') {
+      _getAttendanceToday();
+    }
     _getSchedule();
     _getAppointment();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -639,7 +613,11 @@ class _BerandaPageState extends State<BerandaPage> {
                 ),
               ],
             ),
-          if (widget.role != 'pasien') _statistikHarian(role: widget.role),
+          if (widget.role != 'pasien' && petCountModel != null)
+            _statistikHarian(
+                role: widget.role,
+                petCount: petCountModel!,
+                pasienHariIni: pasienHariIni),
           if (widget.role != 'pasien' && petCountModel != null)
             _jumlahHewan(petCount: petCountModel!),
           Padding(
@@ -842,7 +820,10 @@ _tambahHewan(BuildContext context) {
   );
 }
 
-_statistikHarian({required String role}) {
+_statistikHarian(
+    {required String role,
+    required PetCountModel petCount,
+    required int pasienHariIni}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 20, left: 24, right: 24),
     child: Row(
@@ -858,7 +839,7 @@ _statistikHarian({required String role}) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Image.asset(
-                  'assets/img_suntik.png',
+                  'assets/img_total_hewan.png',
                   width: 28,
                 ),
                 const SizedBox(
@@ -868,23 +849,28 @@ _statistikHarian({required String role}) {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Jumlah Operasi',
+                      'Total Hewan',
                       style: plusJakartaSans.copyWith(
                           fontWeight: medium, fontSize: 12, color: neutral00),
                     ),
                     const SizedBox(
-                      height: 4,
+                      height: 2,
                     ),
-                    Text(
-                      'Operasi Ringan : 30',
-                      style: plusJakartaSans.copyWith(
-                          fontSize: 10, color: const Color(0xFF94959A)),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${petCount.anjing! + petCount.kucing! + petCount.kelinci! + petCount.burung! + petCount.ular! + petCount.hamster!}',
+                          style: plusJakartaSans.copyWith(
+                              fontSize: 24, color: const Color(0xFF94959A)),
+                        ),
+                        Text(
+                          '  Hewan',
+                          style: plusJakartaSans.copyWith(
+                              fontSize: 10, color: const Color(0xFF94959A)),
+                        )
+                      ],
                     ),
-                    Text(
-                      'Operasi Berat     : 20',
-                      style: plusJakartaSans.copyWith(
-                          fontSize: 10, color: const Color(0xFF94959A)),
-                    )
                   ],
                 )
               ],
@@ -925,7 +911,7 @@ _statistikHarian({required String role}) {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '10',
+                            pasienHariIni.toString(),
                             style: plusJakartaSans.copyWith(
                                 fontSize: 24, color: const Color(0xFF94959A)),
                           ),
@@ -954,7 +940,7 @@ _jumlahHewan({required PetCountModel petCount}) {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Jumlah Hewan',
+          'Data Hewan',
           style: inter.copyWith(fontWeight: medium, color: neutral00),
         ),
         const SizedBox(

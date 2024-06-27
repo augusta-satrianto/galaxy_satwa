@@ -9,6 +9,7 @@ import 'package:galaxy_satwa/models/pet_model.dart';
 import 'package:galaxy_satwa/pages/rekam_medis/comp/buat_rekam_medis_page.dart';
 import 'package:galaxy_satwa/pages/rekam_medis/comp/edit_rekam_medis_page.dart';
 import 'package:galaxy_satwa/pages/rekam_medis/comp/pdf_rekam_medis.dart';
+import 'package:galaxy_satwa/services/auth_service.dart';
 import 'package:galaxy_satwa/services/medical_record_service.dart';
 import 'package:intl/intl.dart';
 
@@ -22,19 +23,16 @@ class DetailRekamMedisPage extends StatefulWidget {
 
 class _DetailRekamMedisPageState extends State<DetailRekamMedisPage> {
   final tanggalController = TextEditingController();
+  String? role;
 
   List<dynamic> medicalRecordList = [];
   void _getMedicalRecord() async {
+    role = await getRole();
     ApiResponse response = await getMedicalRecordByPetId(petId: widget.pet.id!);
     if (response.error == null) {
       medicalRecordList = response.data as List<dynamic>;
-      setState(() {});
-    } else {
-      // ignore: use_build_context_synchronously
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
+        setState(() {});
       }
     }
   }
@@ -53,9 +51,6 @@ class _DetailRekamMedisPageState extends State<DetailRekamMedisPage> {
         _getMedicalRecord();
         return true;
       }, context);
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('${response.error}')));
     }
   }
 
@@ -81,31 +76,34 @@ class _DetailRekamMedisPageState extends State<DetailRekamMedisPage> {
           },
         ),
       ),
-      floatingActionButton: GestureDetector(
-        onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => BuatRekamMedis(
-                        pet: widget.pet,
-                      ))).then((receivedData) {
-            if (receivedData == 'retrive') {
-              _getMedicalRecord();
-            }
-          });
-        },
-        child: Container(
-            width: 48,
-            height: 48,
-            margin: const EdgeInsets.only(bottom: 24, right: 10),
-            decoration: BoxDecoration(
-                color: primaryGreen1, borderRadius: BorderRadius.circular(5)),
-            child: const Center(
-                child: Icon(
-              Icons.add,
-              color: Colors.white,
-            ))),
-      ),
+      floatingActionButton: role == 'dokter'
+          ? GestureDetector(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => BuatRekamMedis(
+                              pet: widget.pet,
+                            ))).then((receivedData) {
+                  if (receivedData == 'retrive') {
+                    _getMedicalRecord();
+                  }
+                });
+              },
+              child: Container(
+                  width: 48,
+                  height: 48,
+                  margin: const EdgeInsets.only(bottom: 24, right: 10),
+                  decoration: BoxDecoration(
+                      color: primaryGreen1,
+                      borderRadius: BorderRadius.circular(5)),
+                  child: const Center(
+                      child: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ))),
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: ListView(
         physics: const BouncingScrollPhysics(),
@@ -276,151 +274,154 @@ class _DetailRekamMedisPageState extends State<DetailRekamMedisPage> {
                           title: 'Tindakan', value: medicalRecord.action!),
                       _customListDetailRM2(
                           title: 'Resep', value: medicalRecord.recipe!),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => EditRekamMedis(
-                                            pet: widget.pet,
-                                            medicalRecord: medicalRecord,
-                                          ))).then((receivedData) {
-                                if (receivedData == 'retrive') {
-                                  _getMedicalRecord();
-                                }
-                              });
-                            },
-                            child: Container(
-                              color: neutral07,
-                              padding: const EdgeInsets.all(6),
-                              child: Image.asset(
-                                'assets/ic_pencil.png',
-                                width: 21,
+                      if (role == 'dokter')
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => EditRekamMedis(
+                                              pet: widget.pet,
+                                              medicalRecord: medicalRecord,
+                                            ))).then((receivedData) {
+                                  if (receivedData == 'retrive') {
+                                    _getMedicalRecord();
+                                  }
+                                });
+                              },
+                              child: Container(
+                                color: neutral07,
+                                padding: const EdgeInsets.all(6),
+                                child: Image.asset(
+                                  'assets/ic_pencil.png',
+                                  width: 21,
+                                ),
                               ),
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                  barrierDismissible: false,
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      backgroundColor: Colors.transparent,
-                                      elevation: 0,
-                                      shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(10.0))),
-                                      contentPadding: const EdgeInsets.all(0),
-                                      content: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                24, 20, 24, 10),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              color: neutral07,
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Image.asset(
-                                                  'assets/ic_sampah.png',
-                                                  width: 24,
-                                                ),
-                                                const SizedBox(
-                                                  height: 16,
-                                                ),
-                                                Text(
-                                                  'Konfirmasi Hapus Data Rekam Medis',
-                                                  textAlign: TextAlign.center,
-                                                  style: inter.copyWith(
-                                                      fontWeight: bold,
-                                                      fontSize: 16,
-                                                      color: const Color(
-                                                          0xFF1C1B1F)),
-                                                ),
-                                                const SizedBox(
-                                                  height: 16,
-                                                ),
-                                                Text(
-                                                  'Apa kamu yakin ingin menghapus data rekam medis dari hewan ini?',
-                                                  style: inter.copyWith(
-                                                      fontSize: 14,
-                                                      color: neutral00),
-                                                ),
-                                                const SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
-                                                        child: Text(
-                                                          'Batal',
-                                                          style: inter.copyWith(
-                                                              fontWeight: bold,
-                                                              color: const Color(
-                                                                  0xFfEF4444)),
-                                                        )),
-                                                    const SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                    Align(
-                                                      alignment:
-                                                          Alignment.topRight,
-                                                      child: TextButton(
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                    barrierDismissible: false,
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        backgroundColor: Colors.transparent,
+                                        elevation: 0,
+                                        shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(10.0))),
+                                        contentPadding: const EdgeInsets.all(0),
+                                        content: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      24, 20, 24, 10),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                color: neutral07,
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  Image.asset(
+                                                    'assets/ic_sampah.png',
+                                                    width: 24,
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 16,
+                                                  ),
+                                                  Text(
+                                                    'Konfirmasi Hapus Data Rekam Medis',
+                                                    textAlign: TextAlign.center,
+                                                    style: inter.copyWith(
+                                                        fontWeight: bold,
+                                                        fontSize: 16,
+                                                        color: const Color(
+                                                            0xFF1C1B1F)),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 16,
+                                                  ),
+                                                  Text(
+                                                    'Apa kamu yakin ingin menghapus data rekam medis dari hewan ini?',
+                                                    style: inter.copyWith(
+                                                        fontSize: 14,
+                                                        color: neutral00),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 10,
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    children: [
+                                                      TextButton(
                                                           onPressed: () {
                                                             Navigator.pop(
                                                                 context);
-                                                            _deleteMedicalRecord(
-                                                                recordId:
-                                                                    medicalRecord
-                                                                        .id
-                                                                        .toString());
                                                           },
                                                           child: Text(
-                                                            'Ya',
+                                                            'Batal',
                                                             style: inter.copyWith(
                                                                 fontWeight:
                                                                     bold,
-                                                                color:
-                                                                    primaryGreen1),
+                                                                color: const Color(
+                                                                    0xFfEF4444)),
                                                           )),
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
+                                                      const SizedBox(
+                                                        width: 5,
+                                                      ),
+                                                      Align(
+                                                        alignment:
+                                                            Alignment.topRight,
+                                                        child: TextButton(
+                                                            onPressed: () {
+                                                              Navigator.pop(
+                                                                  context);
+                                                              _deleteMedicalRecord(
+                                                                  recordId:
+                                                                      medicalRecord
+                                                                          .id
+                                                                          .toString());
+                                                            },
+                                                            child: Text(
+                                                              'Ya',
+                                                              style: inter.copyWith(
+                                                                  fontWeight:
+                                                                      bold,
+                                                                  color:
+                                                                      primaryGreen1),
+                                                            )),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  });
-                            },
-                            child: Container(
-                              color: neutral07,
-                              padding: const EdgeInsets.all(6),
-                              child: Image.asset(
-                                'assets/ic_trash.png',
-                                width: 21,
+                                          ],
+                                        ),
+                                      );
+                                    });
+                              },
+                              child: Container(
+                                color: neutral07,
+                                padding: const EdgeInsets.all(6),
+                                child: Image.asset(
+                                  'assets/ic_trash.png',
+                                  width: 21,
+                                ),
                               ),
-                            ),
-                          )
-                        ],
-                      )
+                            )
+                          ],
+                        )
                     ],
                   ),
                 );

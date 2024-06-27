@@ -1,6 +1,6 @@
 class AttendanceModel {
   int? id;
-  int? userId;
+  String? userId;
   String? date;
   String? checkIn;
   String? checkOut;

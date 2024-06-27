@@ -17,10 +17,8 @@ Future<ApiResponse> getNotificationByUserLogin() async {
       'X-Requested-With': 'XMLHttpRequest',
       'Authorization': 'Bearer $token'
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(jsonDecode(response.body)['data']);
         apiResponse.data = jsonDecode(response.body)['data']
             .map((p) => NotificationModel.fromJson(p))
             .toList();

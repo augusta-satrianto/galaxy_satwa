@@ -12,7 +12,6 @@ class CheckAuth extends StatefulWidget {
 
 class _CheckAuthState extends State<CheckAuth> {
   void _checkToken() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
     String token = await getToken();
     if (token == '') {
       // ignore: use_build_context_synchronously

@@ -17,14 +17,9 @@ class _DataMasterPageState extends State<DataMasterPage> {
     ApiResponse response = await getUserAll();
     if (response.error == null) {
       userList = response.data as List<dynamic>;
+    }
+    if (mounted) {
       setState(() {});
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
-      }
     }
   }
 
@@ -194,7 +189,7 @@ class _DataMasterPageState extends State<DataMasterPage> {
                         width: 75,
                         child: Center(
                           child: Text(
-                            user.phone!,
+                            user.phone != null ? user.phone! : '-',
                             style: plusJakartaSans.copyWith(
                                 fontSize: 10, color: neutral00),
                           ),

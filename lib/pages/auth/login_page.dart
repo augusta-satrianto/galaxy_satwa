@@ -7,7 +7,7 @@ import 'package:galaxy_satwa/pages/base/base.dart';
 import 'package:galaxy_satwa/pages/forgot_password/forgot_password_page.dart';
 import 'package:galaxy_satwa/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import '../../components/buttons.dart';
 import '../../config/theme.dart';
 
@@ -25,9 +25,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void _loginUser() async {
     isLoading = true;
-    // showAlertDialog(context);
     ApiResponse response = await login(
-        email: emailController.text, password: passwordController.text);
+        email: emailController.text,
+        password: passwordController.text,
+        device: device);
     if (response.error == null) {
       _saveAndRedirectToHome(response.data as AuthModel);
     } else {
@@ -78,6 +79,15 @@ class _LoginPageState extends State<LoginPage> {
                   )),
           (route) => false);
     }
+  }
+
+  String device = '';
+  @override
+  void initState() {
+    super.initState();
+    OneSignal.shared.getDeviceState().then((deviceState) {
+      device = deviceState?.userId ?? 'Not Available';
+    });
   }
 
   bool isLoading = false;

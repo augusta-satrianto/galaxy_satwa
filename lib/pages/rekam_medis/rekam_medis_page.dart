@@ -21,13 +21,8 @@ class _RekamMedisPageState extends State<RekamMedisPage> {
     ApiResponse response = await getAllPet();
     if (response.error == null) {
       petList = response.data as List<dynamic>;
-      setState(() {});
-    } else {
-      // ignore: use_build_context_synchronously
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
+        setState(() {});
       }
     }
   }
@@ -46,18 +41,7 @@ class _RekamMedisPageState extends State<RekamMedisPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Data Hewan'),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            size: 16,
-          ),
-          onPressed: () async {
-            FocusScope.of(context).unfocus();
-            await Future.delayed(const Duration(milliseconds: 100));
-            // ignore: use_build_context_synchronously
-            Navigator.pop(context);
-          },
-        ),
+        titleSpacing: 24,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),

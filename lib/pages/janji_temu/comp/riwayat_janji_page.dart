@@ -206,9 +206,13 @@ class RiwayatJanjiPage extends StatelessWidget {
                                             const EdgeInsets.only(left: 10),
                                         child: Row(
                                           children: [
-                                            Image.network(
-                                              appointment.pet!.image!,
-                                              width: 32,
+                                            ClipOval(
+                                              child: Image.network(
+                                                appointment.pet!.image!,
+                                                width: 32,
+                                                height: 32,
+                                                fit: BoxFit.cover,
+                                              ),
                                             ),
                                             const SizedBox(
                                               width: 14,
@@ -344,9 +348,13 @@ class RiwayatJanjiPage extends StatelessWidget {
                                                 const EdgeInsets.only(left: 10),
                                             child: Row(
                                               children: [
-                                                Image.network(
-                                                  appointment.pet!.image!,
-                                                  width: 32,
+                                                ClipOval(
+                                                  child: Image.network(
+                                                    appointment.pet!.image!,
+                                                    width: 32,
+                                                    height: 32,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                                 ),
                                                 const SizedBox(
                                                   width: 14,
@@ -470,9 +478,13 @@ class RiwayatJanjiPage extends StatelessWidget {
                                                 const EdgeInsets.only(left: 10),
                                             child: Row(
                                               children: [
-                                                Image.network(
-                                                  appointment.pet!.image!,
-                                                  width: 32,
+                                                ClipOval(
+                                                  child: Image.network(
+                                                    appointment.pet!.image!,
+                                                    width: 32,
+                                                    height: 32,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                                 ),
                                                 const SizedBox(
                                                   width: 14,

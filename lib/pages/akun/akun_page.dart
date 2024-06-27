@@ -32,19 +32,11 @@ class AkunPage extends StatefulWidget {
 
 class _AkunPageState extends State<AkunPage> {
   UserModel? userModel;
-
   void getUser() async {
     ApiResponse response = await getUserDetail();
     if (response.error == null) {
       userModel = response.data as UserModel;
       setState(() {});
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
-      }
     }
   }
 

@@ -6,21 +6,19 @@ import 'package:http/http.dart' as http;
 import 'package:galaxy_satwa/constan.dart';
 import 'package:galaxy_satwa/models/api_response_model.dart';
 
-// By User Login
-Future<ApiResponse> getAppointmentByUserLogin() async {
+// All
+Future<ApiResponse> getAppointmentAll() async {
   ApiResponse apiResponse = ApiResponse();
   try {
     String token = await getToken();
     final response =
-        await http.get(Uri.parse('$baseURL/appointment/user'), headers: {
+        await http.get(Uri.parse('$baseURL/appointment'), headers: {
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
       'Authorization': 'Bearer $token'
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(jsonDecode(response.body)['data']);
         apiResponse.data = jsonDecode(response.body)['data']
             .map((p) => AppointmentModel.fromJson(p))
             .toList();
@@ -37,6 +35,34 @@ Future<ApiResponse> getAppointmentByUserLogin() async {
 }
 
 // By User Login
+Future<ApiResponse> getAppointmentByUserLogin() async {
+  ApiResponse apiResponse = ApiResponse();
+  try {
+    String token = await getToken();
+    final response =
+        await http.get(Uri.parse('$baseURL/appointment/user'), headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Authorization': 'Bearer $token'
+    });
+    switch (response.statusCode) {
+      case 200:
+        apiResponse.data = jsonDecode(response.body)['data']
+            .map((p) => AppointmentModel.fromJson(p))
+            .toList();
+        apiResponse.data as List<dynamic>;
+        break;
+      default:
+        apiResponse.error = 'Something Whent Wrong';
+        break;
+    }
+  } catch (e) {
+    apiResponse.error = 'Server Error';
+  }
+  return apiResponse;
+}
+
+// By Dokter dan Tanggal
 Future<List<String>> getAppointmentByDoctorDate(
     {required String doctorId, required String date}) async {
   List<String> listTime = [];
@@ -49,14 +75,10 @@ Future<List<String>> getAppointmentByDoctorDate(
           'X-Requested-With': 'XMLHttpRequest',
           'Authorization': 'Bearer $token'
         });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(jsonDecode(response.body)['data']);
         List<dynamic> data = jsonDecode(response.body)['data'];
         listTime = List<String>.from(data.map((p) => p['time']));
-
-        print(listTime);
         break;
       default:
         listTime = ['error'];
@@ -79,11 +101,8 @@ Future<ApiResponse> getAppointmentWillCome() async {
       'X-Requested-With': 'XMLHttpRequest',
       'Authorization': 'Bearer $token'
     });
-    print(response.statusCode);
-    print('APp');
     switch (response.statusCode) {
       case 200:
-        print(jsonDecode(response.body)['data']);
         apiResponse.data = jsonDecode(response.body)['data']
             .map((p) => AppointmentModel.fromJson(p))
             .toList();
@@ -107,6 +126,7 @@ Future<ApiResponse> createAppointment({
   required String time,
 }) async {
   ApiResponse apiResponse = ApiResponse();
+  String formatTime = time.replaceAll('.', ':');
   try {
     String token = await getToken();
     final response =
@@ -117,12 +137,10 @@ Future<ApiResponse> createAppointment({
       'doctor_id': doctorId,
       'pet_id': petId,
       'date': date,
-      'time': time,
+      'time': formatTime,
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(response.body);
         apiResponse.data = jsonDecode(response.body);
         break;
       default:
@@ -152,7 +170,6 @@ Future<ApiResponse> updateAppointment({
     });
     switch (response.statusCode) {
       case 200:
-        print(apiResponse.data);
         apiResponse.data = jsonDecode(response.body)['message'];
         break;
       case 403:

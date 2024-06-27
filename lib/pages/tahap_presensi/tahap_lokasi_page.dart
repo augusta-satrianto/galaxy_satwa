@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -13,8 +14,8 @@ import 'package:galaxy_satwa/services/auth_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:trust_location/trust_location.dart';
+import 'package:gps_connectivity/gps_connectivity.dart';
 
 class TahapLokasiPage extends StatefulWidget {
   final String jenisAbsen;
@@ -39,7 +40,7 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
 
   final Set<Marker> _markers = {};
 
-  List<dynamic> _contacts = [];
+  List<dynamic> _me = [];
 
   @override
   void initState() {
@@ -49,13 +50,15 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
 
   List<Circle> circle = [
     Circle(
-      circleId:
-          const CircleId('circle_id_1'), // A unique identifier for the circle
-      center: const LatLng(-7.3205315, 112.7317948), // Center of the circle
-      radius: 500, // Radius in meters
-      fillColor: Colors.blue.withOpacity(0.5), // Fill color of the circle
-      strokeColor: Colors.blue, // Border color of the circle
-      strokeWidth: 2, // Border width of the circle
+      circleId: const CircleId('circle_id_1'),
+      center: const LatLng(
+        -7.3162798,
+        112.7254854,
+      ),
+      radius: 100,
+      fillColor: Colors.blue.withOpacity(0.5),
+      strokeColor: Colors.blue,
+      strokeWidth: 2,
     ),
   ];
 
@@ -73,16 +76,20 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
   String? latitude;
   String? longitude;
   String? status;
+  bool isGpsEnabled = true;
   void getLocation() async {
     try {
-      TrustLocation.onChange.listen((result) {
+      TrustLocation.onChange.listen((result) async {
         if (mounted) {
           latitude = result.latitude;
           longitude = result.longitude;
+          print(latitude);
+          print(longitude);
+          isGpsEnabled = await (GpsConnectivity().checkGpsConnectivity());
 
           // isMock = result.isMockLocation;
           if (latitude != null) {
-            _contacts = [
+            _me = [
               {
                 "name": "Me",
                 "position":
@@ -94,14 +101,13 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
               target: LatLng(double.parse(latitude!), double.parse(longitude!)),
               zoom: 14.4746,
             );
-
-            double distance = Geolocator.distanceBetween(-7.3205315,
-                112.7317948, double.parse(latitude!), double.parse(longitude!));
-            if (distance <= 200) {
-              status = 'Di dalam area';
-            } else {
-              status = 'Di luar area';
-            }
+            double distance = calculateDistance(
+              -7.3162798,
+              112.7254854,
+              double.parse(latitude!),
+              double.parse(longitude!),
+            );
+            status = distance <= 10 ? 'Di dalam area' : 'Di luar area';
 
             isLoading = false;
           }
@@ -112,6 +118,20 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
     } catch (e) {
       print('Error');
     }
+  }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371e3; // Radius Bumi dalam meter
+    double phi1 = lat1 * pi / 180;
+    double phi2 = lat2 * pi / 180;
+    double deltaPhi = (lat2 - lat1) * pi / 180;
+    double deltaLambda = (lon2 - lon1) * pi / 180;
+
+    double a = sin(deltaPhi / 2) * sin(deltaPhi / 2) +
+        cos(phi1) * cos(phi2) * sin(deltaLambda / 2) * sin(deltaLambda / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return R * c; // Distance in meters
   }
 
   void _createdAttendance() async {
@@ -133,8 +153,7 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
 
       // ignore: use_build_context_synchronously
       customDialog(
-          'Tambah Hewan', 'Hewan Berhasil Ditambahkan', 'assets/ic_hewanku.png',
-          () {
+          'Absensi', 'Berhasil melakukan absen', 'assets/ic_presensi.png', () {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
@@ -163,43 +182,23 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
 
     return Scaffold(
         body: SafeArea(
-      child: Stack(
-        children: [
-          !isLoading
-              ? GoogleMap(
-                  initialCameraPosition: _kGooglePlex!,
-                  markers: _markers,
-                  circles: Set<Circle>.from(circle),
-                  myLocationButtonEnabled: false,
-                  onMapCreated: (GoogleMapController controller) {},
-                )
-              : Container(),
-          Positioned(
-            top: 30,
-            left: 24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: isGpsEnabled != null
+          ? Stack(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    decoration: BoxDecoration(
-                        color: neutral100, shape: BoxShape.circle),
-                    child: const Center(
-                        child: Icon(
-                      Icons.arrow_back_ios_rounded,
-                      size: 16,
-                    )),
-                  ),
-                ),
-                if (status == 'Di luar area')
+                !isLoading
+                    ? GoogleMap(
+                        initialCameraPosition: _kGooglePlex!,
+                        markers: _markers,
+                        circles: Set<Circle>.from(circle),
+                        myLocationButtonEnabled: false,
+                        onMapCreated: (GoogleMapController controller) {},
+                      )
+                    : Container(),
+                if (!isGpsEnabled!)
                   Container(
+                    height: 80,
                     padding: const EdgeInsets.all(10),
-                    margin: const EdgeInsets.only(top: 20),
+                    margin: const EdgeInsets.only(top: 100, left: 20),
                     decoration: BoxDecoration(
                         color: danger, borderRadius: BorderRadius.circular(5)),
                     width: MediaQuery.of(context).size.width - 48,
@@ -207,7 +206,7 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Di luar jangkauan',
+                          'Aktifkan GPS',
                           style: plusJakartaSans.copyWith(
                               fontWeight: bold, color: const Color(0xFFFBFBFB)),
                         ),
@@ -215,88 +214,145 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
                           height: 15,
                         ),
                         Text(
-                          'Lokasi Anda berada di luar jangkauan . Atur lokasi kamu dalam jarak yang sudah ditetapkan agar Jam Absen Masuk / Absen Pulang kamu bisa tercatat.',
+                          'Silahkan aktifkan GPS terlebih dahulu',
                           style: plusJakartaSans.copyWith(
                               fontSize: 12, color: const Color(0xFFFBFBFB)),
                         )
                       ],
                     ),
-                  )
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            child: Column(
-              children: [
-                Container(
-                  height: 230,
-                  width: MediaQuery.of(context).size.width,
-                  padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
-                  decoration: BoxDecoration(
-                      color: neutral100,
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40))),
+                  ),
+                Positioned(
+                  top: 30,
+                  left: 24,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Align(
-                        alignment: Alignment.center,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
                         child: Container(
-                          height: 4,
-                          width: 85,
-                          margin: const EdgeInsets.only(bottom: 24),
+                          width: 33,
+                          height: 33,
                           decoration: BoxDecoration(
-                              color: neutral200,
-                              borderRadius: BorderRadius.circular(5)),
+                              color: neutral100, shape: BoxShape.circle),
+                          child: const Center(
+                              child: Icon(
+                            Icons.arrow_back_ios_rounded,
+                            size: 16,
+                          )),
                         ),
                       ),
-                      Text(widget.jenisAbsen,
-                          style: plusJakartaSans.copyWith(
-                              fontWeight: semiBold,
-                              fontSize: 28,
-                              color: neutral00)),
-                      const SizedBox(
-                        height: 3.5,
-                      ),
-                      Row(
-                        children: [
-                          Image.asset(
-                            'assets/ic_kalender_rounded.png',
-                            width: 16,
-                            color: neutral00,
+                      if (status == 'Di luar area' && status != null)
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          margin: const EdgeInsets.only(top: 20),
+                          decoration: BoxDecoration(
+                              color: danger,
+                              borderRadius: BorderRadius.circular(5)),
+                          width: MediaQuery.of(context).size.width - 48,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Di luar jangkauan',
+                                style: plusJakartaSans.copyWith(
+                                    fontWeight: bold,
+                                    color: const Color(0xFFFBFBFB)),
+                              ),
+                              const SizedBox(
+                                height: 15,
+                              ),
+                              Text(
+                                'Lokasi Anda berada di luar jangkauan . Atur lokasi kamu dalam jarak yang sudah ditetapkan agar Jam Absen Masuk / Absen Pulang kamu bisa tercatat.',
+                                style: plusJakartaSans.copyWith(
+                                    fontSize: 12,
+                                    color: const Color(0xFFFBFBFB)),
+                              )
+                            ],
                           ),
-                          const SizedBox(
-                            width: 13,
-                          ),
-                          Text('${widget.tanggal} (08.00 - 22.00)',
-                              style: plusJakartaSans.copyWith(
-                                  fontWeight: bold,
-                                  fontSize: 12,
-                                  color: neutral00)),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 23.5,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 11),
-                        child: CustomFilledButton(
-                            title: 'Kirim Presensi',
-                            onPressed: () {
-                              _createdAttendance();
-                            }),
-                      ),
+                        )
                     ],
                   ),
                 ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 230,
+                        width: MediaQuery.of(context).size.width,
+                        padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
+                        decoration: BoxDecoration(
+                            color: neutral100,
+                            borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(40),
+                                topRight: Radius.circular(40))),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: Container(
+                                height: 4,
+                                width: 85,
+                                margin: const EdgeInsets.only(bottom: 24),
+                                decoration: BoxDecoration(
+                                    color: neutral200,
+                                    borderRadius: BorderRadius.circular(5)),
+                              ),
+                            ),
+                            Text(widget.jenisAbsen,
+                                style: plusJakartaSans.copyWith(
+                                    fontWeight: semiBold,
+                                    fontSize: 28,
+                                    color: neutral00)),
+                            const SizedBox(
+                              height: 3.5,
+                            ),
+                            Row(
+                              children: [
+                                Image.asset(
+                                  'assets/ic_kalender_rounded.png',
+                                  width: 16,
+                                  color: neutral00,
+                                ),
+                                const SizedBox(
+                                  width: 13,
+                                ),
+                                Text('${widget.tanggal} (08.00 - 22.00)',
+                                    style: plusJakartaSans.copyWith(
+                                        fontWeight: bold,
+                                        fontSize: 12,
+                                        color: neutral00)),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 23.5,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                              child: CustomFilledButton(
+                                  title: 'Kirim Presensi',
+                                  isActive:
+                                      isGpsEnabled && status == 'Di dalam area',
+                                  onPressed: () {
+                                    if (isGpsEnabled &&
+                                        status == 'Di dalam area') {
+                                      _createdAttendance();
+                                    }
+                                  }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               ],
-            ),
-          )
-        ],
-      ),
+            )
+          : Container(),
     ));
   }
 
@@ -305,7 +361,7 @@ class _TahapLokasiPageState extends State<TahapLokasiPage> {
       Marker marker;
 
       // ignore: avoid_function_literals_in_foreach_calls
-      _contacts.forEach((contact) async {
+      _me.forEach((contact) async {
         marker = Marker(
           markerId: MarkerId(contact['name']),
           position: contact['position'],

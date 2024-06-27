@@ -64,13 +64,6 @@ class _PresensiPageState extends State<PresensiPage> {
         }
       }
       setState(() {});
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
-      }
     }
   }
 

@@ -11,7 +11,9 @@ import '../models/auth_model.dart';
 import '../models/user_model.dart';
 
 Future<ApiResponse> login(
-    {required String email, required String password}) async {
+    {required String email,
+    required String password,
+    required String device}) async {
   ApiResponse apiResponse = ApiResponse();
   try {
     final response = await http.post(Uri.parse('$baseURL/login'), headers: {
@@ -19,7 +21,8 @@ Future<ApiResponse> login(
       'X-Requested-With': 'XMLHttpRequest',
     }, body: {
       'email': email,
-      'password': password
+      'password': password,
+      'device': device
     });
     print(response.statusCode);
     switch (response.statusCode) {
@@ -86,10 +89,8 @@ Future<ApiResponse> getUserDetail() async {
       'X-Requested-With': 'XMLHttpRequest',
       'Authorization': 'Bearer $token'
     });
-    print(response.statusCode);
     switch (response.statusCode) {
       case 200:
-        print(jsonDecode(response.body)['user']);
         apiResponse.data =
             UserModel.fromJson(jsonDecode(response.body)['user']);
         break;

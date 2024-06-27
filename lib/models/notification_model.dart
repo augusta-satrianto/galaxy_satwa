@@ -1,11 +1,11 @@
 class NotificationModel {
   int? id;
-  int? userId;
+  String? userId;
   String? date;
   String? time;
   String? title;
   String? description;
-  int? isRead;
+  String? isRead;
   NotificationModel(
       {this.id,
       this.userId,

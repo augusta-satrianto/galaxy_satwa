@@ -21,29 +21,39 @@ class PersuratanPage extends StatefulWidget {
 
 class _PersuratanPageState extends State<PersuratanPage> {
   List<dynamic> correspondenceList = [];
+  bool hasDataSurat = false;
+  bool hasDataRiwayat = false;
+  bool isLoading = true;
+  String? role;
   void _getCorrespondence() async {
-    ApiResponse response = await getCorrespondenceByUserLogin();
+    role = await getRole();
+    ApiResponse response;
+    if (role == 'pasien') {
+      response = await getCorrespondenceByUserLogin();
+    } else {
+      response = await getCorrespondenceAll();
+    }
+
     if (response.error == null) {
       correspondenceList = response.data as List<dynamic>;
-      setState(() {});
-    } else {
-      // ignore: use_build_context_synchronously
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${response.error}')),
-        );
+      for (int i = 0; i < correspondenceList.length; i++) {
+        CorrespondenceModel correspondance = correspondenceList[i];
+        if (correspondance.replyFile == null) {
+          hasDataSurat = true;
+        } else {
+          hasDataRiwayat = true;
+        }
       }
     }
-  }
-
-  String? role;
-  _getPrev() async {
-    role = await getRole();
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   void initState() {
-    _getPrev();
     _getCorrespondence();
     super.initState();
   }
@@ -67,6 +77,9 @@ class _PersuratanPageState extends State<PersuratanPage> {
 
     return completer.future;
   }
+
+  bool showNoDataSurat = false;
+  bool showNoDataRiwayat = false;
 
   @override
   Widget build(BuildContext context) {
@@ -125,320 +138,395 @@ class _PersuratanPageState extends State<PersuratanPage> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     //Surat
-                    ListView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      children: [
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Column(
-                            children: List.generate(correspondenceList.length,
-                                (index) {
-                          CorrespondenceModel correspondence =
-                              correspondenceList[index];
-                          if (correspondence.replyFile == null) {
-                            return Column(
+                    if (!isLoading)
+                      !hasDataSurat
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                GestureDetector(
-                                  onTap: () async {
-                                    var file = await createFileOfPzdfUrl(
-                                        url: correspondence.file!);
-                                    // ignore: use_build_context_synchronously
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                DetailSuratPage(
-                                                  correspondence:
-                                                      correspondence,
-                                                  pdfPath: file.path,
-                                                  role: role!,
-                                                ))).then((receivedData) {
-                                      if (receivedData == 'retrive') {
-                                        _getCorrespondence();
-                                      }
-                                    });
-                                  },
-                                  child: Container(
-                                    color: neutral07,
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Image.asset(
-                                          'assets/img_surat_masuk.png',
-                                          width: 45,
-                                        ),
-                                        const SizedBox(
-                                          width: 8,
-                                        ),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Surat ${correspondence.category!}',
-                                                style: plusJakartaSans.copyWith(
-                                                    fontWeight: medium,
-                                                    fontSize: 12,
-                                                    color: neutral00),
-                                              ),
-                                              const SizedBox(
-                                                height: 11,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                      DateFormat('dd/MM/yyyy')
-                                                          .format(correspondence
-                                                              .createdAt!),
-                                                      style: plusJakartaSans
-                                                          .copyWith(
-                                                              fontSize: 10,
-                                                              color: const Color(
-                                                                  0xFF83858A))),
-                                                  const SizedBox(
-                                                    width: 12,
-                                                  ),
-                                                  Text(
-                                                      correspondence.createdAt!
-                                                          .toString()
-                                                          .substring(10, 16),
-                                                      style: plusJakartaSans
-                                                          .copyWith(
-                                                              fontSize: 10,
-                                                              color: const Color(
-                                                                  0xFF83858A)))
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 11,
-                                                        vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                        border: Border.all(
-                                                            color: const Color(
-                                                                0xFF000000)),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(15)),
-                                                    child: Row(children: [
-                                                      Image.asset(
-                                                        'assets/ic_pdf.png',
-                                                        width: 14,
-                                                      ),
-                                                      const SizedBox(
-                                                        width: 8,
-                                                      ),
-                                                      Text(
-                                                        '${correspondence.category}.pdf',
-                                                        style: inter.copyWith(
-                                                            fontSize: 10,
-                                                            color: const Color(
-                                                                    0xFF000000)
-                                                                .withOpacity(
-                                                                    0.7)),
-                                                      )
-                                                    ]),
-                                                  ),
-                                                ],
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
-                                        Image.asset(
-                                          'assets/ic_menunggu.png',
-                                          width: 18,
-                                        )
-                                      ],
-                                    ),
-                                  ),
+                                Image.asset(
+                                  'assets/img_grafis_email.png',
+                                  width: 170,
                                 ),
-                                Container(
-                                  height: 1,
-                                  width: double.infinity,
-                                  margin: const EdgeInsets.only(
-                                      top: 12, bottom: 20),
-                                  color: const Color(0xFFD2D4DA),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Belum ada surat persetujuan\ntindakan medis untukmu',
+                                  textAlign: TextAlign.center,
+                                  style: plusJakartaSans.copyWith(
+                                      fontSize: 12, color: neutral02),
                                 )
                               ],
-                            );
-                          } else {
-                            return Container();
-                          }
-                        }))
-                      ],
-                    ),
+                            )
+                          : ListView(
+                              physics: const BouncingScrollPhysics(),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24),
+                              children: [
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Column(
+                                    children: List.generate(
+                                        correspondenceList.length, (index) {
+                                  CorrespondenceModel correspondence =
+                                      correspondenceList[index];
+                                  if (correspondence.replyFile == null) {
+                                    return Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            var file =
+                                                await createFileOfPzdfUrl(
+                                                    url: correspondence.file!);
+                                            // ignore: use_build_context_synchronously
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        DetailSuratPage(
+                                                          correspondence:
+                                                              correspondence,
+                                                          pdfPath: file.path,
+                                                          role: role!,
+                                                        ))).then(
+                                                (receivedData) {
+                                              if (receivedData == 'retrive') {
+                                                _getCorrespondence();
+                                              }
+                                            });
+                                          },
+                                          child: Container(
+                                            color: neutral07,
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Image.asset(
+                                                  'assets/img_surat_masuk.png',
+                                                  width: 45,
+                                                ),
+                                                const SizedBox(
+                                                  width: 8,
+                                                ),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'Surat ${correspondence.category!}',
+                                                        style: plusJakartaSans
+                                                            .copyWith(
+                                                                fontWeight:
+                                                                    medium,
+                                                                fontSize: 12,
+                                                                color:
+                                                                    neutral00),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 11,
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                              DateFormat(
+                                                                      'dd/MM/yyyy')
+                                                                  .format(correspondence
+                                                                      .createdAt!),
+                                                              style: plusJakartaSans
+                                                                  .copyWith(
+                                                                      fontSize:
+                                                                          10,
+                                                                      color: const Color(
+                                                                          0xFF83858A))),
+                                                          const SizedBox(
+                                                            width: 12,
+                                                          ),
+                                                          Text(
+                                                              correspondence
+                                                                  .createdAt!
+                                                                  .toString()
+                                                                  .substring(
+                                                                      10, 16),
+                                                              style: plusJakartaSans
+                                                                  .copyWith(
+                                                                      fontSize:
+                                                                          10,
+                                                                      color: const Color(
+                                                                          0xFF83858A)))
+                                                        ],
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 5,
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal:
+                                                                        11,
+                                                                    vertical:
+                                                                        4),
+                                                            decoration: BoxDecoration(
+                                                                border: Border.all(
+                                                                    color: const Color(
+                                                                        0xFF000000)),
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            15)),
+                                                            child: Row(
+                                                                children: [
+                                                                  Image.asset(
+                                                                    'assets/ic_pdf.png',
+                                                                    width: 14,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 8,
+                                                                  ),
+                                                                  Text(
+                                                                    '${correspondence.category}.pdf',
+                                                                    style: inter.copyWith(
+                                                                        fontSize:
+                                                                            10,
+                                                                        color: const Color(0xFF000000)
+                                                                            .withOpacity(0.7)),
+                                                                  )
+                                                                ]),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: 10,
+                                                ),
+                                                Image.asset(
+                                                  'assets/ic_menunggu.png',
+                                                  width: 18,
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 1,
+                                          width: double.infinity,
+                                          margin: const EdgeInsets.only(
+                                              top: 12, bottom: 20),
+                                          color: const Color(0xFFD2D4DA),
+                                        )
+                                      ],
+                                    );
+                                  } else {
+                                    return Container();
+                                  }
+                                }))
+                              ],
+                            ),
 
                     //Riwayat Surat
-                    ListView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      children: [
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Column(
-                            children: List.generate(correspondenceList.length,
-                                (index) {
-                          CorrespondenceModel correspondence =
-                              correspondenceList[index];
-                          if (correspondence.replyFile != null) {
-                            return Column(
+                    if (!isLoading)
+                      !hasDataRiwayat
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                GestureDetector(
-                                  onTap: () async {
-                                    var file = await createFileOfPzdfUrl(
-                                        url: correspondence.file!);
-                                    var fileBalasan = await createFileOfPzdfUrl(
-                                        url: correspondence.replyFile!);
-                                    // ignore: use_build_context_synchronously
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                DetailSuratPage(
-                                                  correspondence:
-                                                      correspondence,
-                                                  pdfPath: file.path,
-                                                  pdfPathBalasan:
-                                                      fileBalasan.path,
-                                                  role: role!,
-                                                )));
-                                  },
-                                  child: Container(
-                                    color: neutral07,
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Image.asset(
-                                          'assets/img_surat_masuk.png',
-                                          width: 45,
-                                        ),
-                                        const SizedBox(
-                                          width: 8,
-                                        ),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Surat ${correspondence.category!}',
-                                                style: plusJakartaSans.copyWith(
-                                                    fontWeight: medium,
-                                                    fontSize: 12,
-                                                    color: neutral00),
-                                              ),
-                                              const SizedBox(
-                                                height: 11,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                      DateFormat('dd/MM/yyyy')
-                                                          .format(correspondence
-                                                              .createdAt!),
-                                                      style: plusJakartaSans
-                                                          .copyWith(
-                                                              fontSize: 10,
-                                                              color: const Color(
-                                                                  0xFF83858A))),
-                                                  const SizedBox(
-                                                    width: 12,
-                                                  ),
-                                                  Text(
-                                                      correspondence.createdAt!
-                                                          .toString()
-                                                          .substring(10, 16),
-                                                      style: plusJakartaSans
-                                                          .copyWith(
-                                                              fontSize: 10,
-                                                              color: const Color(
-                                                                  0xFF83858A)))
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 11,
-                                                        vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                        border: Border.all(
-                                                            color: const Color(
-                                                                0xFF000000)),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(15)),
-                                                    child: Row(children: [
-                                                      Image.asset(
-                                                        'assets/ic_pdf.png',
-                                                        width: 14,
-                                                      ),
-                                                      const SizedBox(
-                                                        width: 8,
-                                                      ),
-                                                      Text(
-                                                        '${correspondence.category}.pdf',
-                                                        style: inter.copyWith(
-                                                            fontSize: 10,
-                                                            color: const Color(
-                                                                    0xFF000000)
-                                                                .withOpacity(
-                                                                    0.7)),
-                                                      )
-                                                    ]),
-                                                  ),
-                                                ],
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
-                                        Text(
-                                          'Selesai',
-                                          style: plusJakartaSans.copyWith(
-                                              fontSize: 12,
-                                              color: const Color(0xFF22C55E)),
-                                        )
-                                      ],
-                                    ),
-                                  ),
+                                Image.asset(
+                                  'assets/img_grafis_email.png',
+                                  width: 170,
                                 ),
-                                Container(
-                                  height: 1,
-                                  width: double.infinity,
-                                  margin: const EdgeInsets.only(
-                                      top: 12, bottom: 20),
-                                  color: const Color(0xFFD2D4DA),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Belum ada surat persetujuan\ntindakan medis untukmu',
+                                  textAlign: TextAlign.center,
+                                  style: plusJakartaSans.copyWith(
+                                      fontSize: 12, color: neutral02),
                                 )
                               ],
-                            );
-                          } else {
-                            return Container();
-                          }
-                        }))
-                      ],
-                    ),
+                            )
+                          : ListView(
+                              physics: const BouncingScrollPhysics(),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24),
+                              children: [
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Column(
+                                    children: List.generate(
+                                        correspondenceList.length, (index) {
+                                  CorrespondenceModel correspondence =
+                                      correspondenceList[index];
+                                  if (correspondence.replyFile != null) {
+                                    return Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            var file =
+                                                await createFileOfPzdfUrl(
+                                                    url: correspondence.file!);
+                                            var fileBalasan =
+                                                await createFileOfPzdfUrl(
+                                                    url: correspondence
+                                                        .replyFile!);
+                                            // ignore: use_build_context_synchronously
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        DetailSuratPage(
+                                                          correspondence:
+                                                              correspondence,
+                                                          pdfPath: file.path,
+                                                          pdfPathBalasan:
+                                                              fileBalasan.path,
+                                                          role: role!,
+                                                        )));
+                                          },
+                                          child: Container(
+                                            color: neutral07,
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Image.asset(
+                                                  'assets/img_surat_masuk.png',
+                                                  width: 45,
+                                                ),
+                                                const SizedBox(
+                                                  width: 8,
+                                                ),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'Surat ${correspondence.category!}',
+                                                        style: plusJakartaSans
+                                                            .copyWith(
+                                                                fontWeight:
+                                                                    medium,
+                                                                fontSize: 12,
+                                                                color:
+                                                                    neutral00),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 11,
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                              DateFormat(
+                                                                      'dd/MM/yyyy')
+                                                                  .format(correspondence
+                                                                      .createdAt!),
+                                                              style: plusJakartaSans
+                                                                  .copyWith(
+                                                                      fontSize:
+                                                                          10,
+                                                                      color: const Color(
+                                                                          0xFF83858A))),
+                                                          const SizedBox(
+                                                            width: 12,
+                                                          ),
+                                                          Text(
+                                                              correspondence
+                                                                  .createdAt!
+                                                                  .toString()
+                                                                  .substring(
+                                                                      10, 16),
+                                                              style: plusJakartaSans
+                                                                  .copyWith(
+                                                                      fontSize:
+                                                                          10,
+                                                                      color: const Color(
+                                                                          0xFF83858A)))
+                                                        ],
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 5,
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal:
+                                                                        11,
+                                                                    vertical:
+                                                                        4),
+                                                            decoration: BoxDecoration(
+                                                                border: Border.all(
+                                                                    color: const Color(
+                                                                        0xFF000000)),
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            15)),
+                                                            child: Row(
+                                                                children: [
+                                                                  Image.asset(
+                                                                    'assets/ic_pdf.png',
+                                                                    width: 14,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 8,
+                                                                  ),
+                                                                  Text(
+                                                                    '${correspondence.category}.pdf',
+                                                                    style: inter.copyWith(
+                                                                        fontSize:
+                                                                            10,
+                                                                        color: const Color(0xFF000000)
+                                                                            .withOpacity(0.7)),
+                                                                  )
+                                                                ]),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: 10,
+                                                ),
+                                                Text(
+                                                  'Selesai',
+                                                  style:
+                                                      plusJakartaSans.copyWith(
+                                                          fontSize: 12,
+                                                          color: const Color(
+                                                              0xFF22C55E)),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 1,
+                                          width: double.infinity,
+                                          margin: const EdgeInsets.only(
+                                              top: 12, bottom: 20),
+                                          color: const Color(0xFFD2D4DA),
+                                        )
+                                      ],
+                                    );
+                                  } else {
+                                    return Container();
+                                  }
+                                }))
+                              ],
+                            )
                   ],
                 ),
               )

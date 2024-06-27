@@ -2,7 +2,7 @@ import 'package:galaxy_satwa/models/user_model.dart';
 
 class PetModel {
   int? id;
-  int? userId;
+  String? userId;
   String? name;
   String? category;
   String? type;
